@@ -27,4 +27,7 @@ public class Pebble {
     public String getWhiteBag(){
         return whiteBag;
     }
+    public String toString(){
+        return "Value: "+ this.getValue();// + " Bag:" + this.getBlackBag();
+    }
 }
