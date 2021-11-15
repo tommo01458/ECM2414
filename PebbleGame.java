@@ -4,29 +4,22 @@ import java.util.Scanner;
 import java.util.concurrent.*;
 public class PebbleGame{
     private ArrayList<Player> allPlayers = new ArrayList<>();
-    private ArrayList<Thread> allThreads = new ArrayList<>();
-    private ArrayList<Bags> allBags = new ArrayList<>();
-    private Bags.BlackBag blackBagX;
-    private Bags.BlackBag blackBagY;
-    private Bags.BlackBag blackBagZ;
-    private Bags.WhiteBag whiteBagA;
-    private Bags.WhiteBag whiteBagB;
-    private Bags.WhiteBag whiteBagC;
-    public PebbleGame(){
-    
-    }
-    
-    public Bags.BlackBag randomBag(){
-        Random rand = new Random();
-        int bagChoice = rand.nextInt(3);
-        if(bagChoice== 0){
-            return this.getBagX();
-        } else if(bagChoice == 1){
-            return this.getBagY();
-        } else if(bagChoice==2){
-            return this.getBagZ();
+    private Bag[] blackBags = new Bag[3];
+    private Bag[] whiteBags = new Bag[3];
+    private int noOfPlayers;
+    public PebbleGame(String[] bagLocations, int numberOfPlayers){
+        try{
+            String[][] names = {{"X", "A"},{"Y", "B"},{"Z", "C"}};
+            this.noOfPlayers = numberOfPlayers;
+            for (int i =0; i<3;i++){
+                blackBags[i] = new Bag(names[i][0],bagLocations[i], numberOfPlayers);
+                whiteBags[i] = new Bag(names[i][1]);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(0); 
         }
-        return null;
+    }
     }
     public void addPlayer(Player player){
         this.allPlayers.add(player);
@@ -36,15 +29,6 @@ public class PebbleGame{
     }
     public ArrayList<Player> getPlayers(){
         return this.allPlayers;
-    }
-    public int getNoOfThreads(){
-        return this.allThreads.size();
-    }
-    public void addThread(Thread thread){
-        this.allThreads.add(thread);
-    }
-    public ArrayList<Thread> getThread(){
-        return this.allThreads;
     }
     public void addBag(Bags bag){
         this.allBags.add(bag);
@@ -91,37 +75,91 @@ public class PebbleGame{
     public class Player implements Runnable{
         //Attributes
         private int playerId;
-        private List<Pebble> playerPebbles = new ArrayList<>();
+        public List<Pebble> playerPebbles = new ArrayList<>();
         private int playerScore;
         private String playerBlackBag;
         private String playerWhiteBag;
         //Methods
         public void run(){
-            int counter = 0;
-            synchronized(this){
-                    while(true){
-                    if(this.getPlayerPebbles().size() < 10){
-                        draw(this);
-                    }else{
-                        while(this.getScore() != 100){
-                            System.out.println(this);
-                            int bag = ThreadLocalRandom.current().nextInt(0, 3 + 1);
-                            synchronized(this){
-                                draw(this);
-                                System.out.println("draw");
-                                discard(this, bag);
-                                System.out.println("discard"); 
-                            }                         
-                        }
-                           
-                    }           
+            int counter =0;
+            Random random = new Random();
+            List<Pebble> bagX = PebbleGame.this.getBagX().getPebbleWeights();
+            List<Pebble> bagY = PebbleGame.this.getBagY().getPebbleWeights();
+            List<Pebble> bagZ = PebbleGame.this.getBagZ().getPebbleWeights();
+            for (int i = 0; i <10; i++){
+                int bagChoice = random.nextInt(3);
+                if (bagChoice==0 && bagX.size() > 0){
+                    synchronized(bagX){
+                        firstTen(bagX);
+                            Thread.yield();
+                    }
+                }
+            }
+                try{
+                    this.playerToFile(("Player-" + this.getId()), "The Player "+ this.getId() + " has started the game!");
+                } catch (IOException e){
+                    System.out.println(e);
+                }
+                try {
+                    while(this.getScore() != 100){
                 
+                        List<Pebble> bagA = PebbleGame.this.getBagA().getPebbleWeights();
+                        List<Pebble> bagB = PebbleGame.this.getBagB().getPebbleWeights();
+                        List<Pebble> bagC = PebbleGame.this.getBagC().getPebbleWeights();
+                        while (bagX.size() + bagY.size() + bagZ.size() > 0){
+                            int bagChoice = random.nextInt(3);
+                            if (bagChoice==0 && bagX.size() > 0){
+                                synchronized(bagX){
+                                    synchronized(bagA){
+                                        drawAndDiscard(bagX, bagA);
+                                        Thread.yield();
+                                    }
+                                    
+                                }
+                            } else if (bagChoice == 1 && bagY.size() > 0){
+                                synchronized(bagY){
+                                    synchronized(bagB){
+                                        drawAndDiscard(bagY, bagB);
+                                        Thread.yield();
+                                    }
+                                }
+                            } else if (bagChoice == 2 && bagZ.size() > 0){
+                                synchronized(bagZ){
+                                    synchronized(bagC){
+                                        drawAndDiscard(bagZ, bagC);
+                                        Thread.yield();
+                                    }
+                                }
+                            }
+                            //System.out.println(this);
+                            counter ++;
+                            //System.out.println("Player " + this.getId() + " with score " + this.getScore());
+                        }
+                        if (bagX.size() + bagY.size() + bagZ.size() == 0 ){
+                            bagX.addAll(bagA);
+                            bagY.addAll(bagB);
+                            bagZ.addAll(bagC);
+                            bagA.clear();
+                            bagB.clear();
+                            bagC.clear();
+                        }
+                        
+                    }
+                
+                if (this.getScore() == 100){
+                    System.out.println("The player " + this.getId() + " has won the game!!"+ counter);
+                }
+                System.exit(0);  
+                    
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.exit(0); 
                 }
                 
-            }
-        }
-        
+            }          
+    
         //constructor
+        
         public Player(int id){
             this.playerId = id;
         }
@@ -141,10 +179,17 @@ public class PebbleGame{
         public int getScore(){
             int score = 0;
             for (Pebble pebble:this.getPlayerPebbles()){
-                score+=pebble.getValue();
+                if (pebble != null){
+                    score+=pebble.getValue();
+                }
             }
             this.playerScore = score;
             return this.playerScore;
+        }
+        public void playerToFile(String filename, String string) throws IOException{
+            FileWriter writer = new FileWriter(filename + "-output.txt");
+            writer.write(string);
+            writer.close();
         }
         public int getId(){
             return this.playerId;
@@ -167,157 +212,58 @@ public class PebbleGame{
         public String toString(){
             return "Player ID: " +this.getId() + " , Score: " + this.getScore() + " , Pebbles: " + this.getPlayerPebbles();
         }
-        public List<Pebble> randomPebble(List<Pebble> pebbleWeights, Player player){
-            Random rand = new Random();
-            int randomIndex = rand.nextInt(pebbleWeights.size());
-            Pebble pebbleChoice = pebbleWeights.get(randomIndex);
-            pebbleWeights.remove(randomIndex);
-            if (player.getPlayerPebbles().contains(pebbleChoice)){
-            } else {
-                player.addPebble(pebbleChoice);
+        public synchronized void firstTen(List<Pebble> randomBlackBag){
+            try {
+                    int randomIndex = ThreadLocalRandom.current().nextInt(0,randomBlackBag.size());
+                    Pebble pebbleChoice = randomBlackBag.get(randomIndex); 
+                    this.addPebble(pebbleChoice);
+                    randomBlackBag.remove(randomIndex);
+            } catch (Exception e){
+                e.printStackTrace();
+                System.exit(0);
             }
-            return pebbleWeights;
+            
         }
-        
-        public String draw(Player player){
+    
+        public synchronized void drawAndDiscard(List<Pebble> randomBlackBag, List<Pebble> randomWhiteBag){
+            Random rand = new Random();
             List<Pebble> bagX = PebbleGame.this.getBagX().getPebbleWeights();
             List<Pebble> bagY = PebbleGame.this.getBagY().getPebbleWeights();
             List<Pebble> bagZ = PebbleGame.this.getBagZ().getPebbleWeights();
-            int bagChoice = ThreadLocalRandom.current().nextInt(0,3 + 1);
-            int blackBagSize = bagX.size() + bagY.size() + bagZ.size();
-            if (blackBagSize == 0){
+            List<Pebble> bagA = PebbleGame.this.getBagA().getPebbleWeights();
+            List<Pebble> bagB = PebbleGame.this.getBagB().getPebbleWeights();
+            List<Pebble> bagC = PebbleGame.this.getBagC().getPebbleWeights();
+            try {
+                //drawing from a bag to the hand
+                int randomBlackIndex = rand.nextInt(randomBlackBag.size());
+                Pebble drawChoice = randomBlackBag.get(randomBlackIndex);
+                this.addPebble(drawChoice);
+                randomBlackBag.remove(randomBlackIndex);
+                //adding random player pebble to white bag
+                int randomPlayerPebbleIndex = rand.nextInt(this.getPlayerPebbles().size());
+                Pebble playerDiscard = this.getPlayerPebbles().get(randomPlayerPebbleIndex);
                 
-            }else{
-                if(bagChoice == 1){
-                    player.setBlackBag("X");
-                    player.setWhiteBag("A");
-                    int randomIndex = ThreadLocalRandom.current().nextInt(0,bagX.size() +1);
-                    Pebble pebbleChoice = bagX.get(randomIndex); 
-                    player.addPebble(pebbleChoice); 
-                    bagX.remove(randomIndex);
-                    return "X";
-                }else if(bagChoice == 2){
-                    player.setBlackBag("Y");
-                    player.setWhiteBag("B");
-                    int randomIndex = ThreadLocalRandom.current().nextInt(0,bagY.size() +1);
-                    Pebble pebbleChoice = bagY.get(randomIndex); 
-                    player.addPebble(pebbleChoice); 
-                    bagY.remove(randomIndex);
-                    return "Y";
-                
-                }else if(bagChoice == 3){
-                    player.setBlackBag("Z");
-                    player.setWhiteBag("C");
-                    int randomIndex = ThreadLocalRandom.current().nextInt(0,bagZ.size()+1);
-                    Pebble pebbleChoice = bagZ.get(randomIndex); 
-                    player.addPebble(pebbleChoice); 
-                    bagZ.remove(randomIndex);
-                    return "Z";
+                if(playerDiscard.getBlackBag() == null){
+                    System.out.println(playerDiscard);
                 }
-                
+                if(playerDiscard.getBlackBag() == "X"){
+                    bagA.add(playerDiscard);
+                }else if(playerDiscard.getBlackBag() == "Y"){
+                    bagB.add(playerDiscard);
+                }else if(playerDiscard.getBlackBag() == "Z"){
+                    bagC.add(playerDiscard);
+                }
+                this.getPlayerPebbles().remove(randomPlayerPebbleIndex);
+            } catch (Exception e){
+                e.printStackTrace();
+                System.exit(0);
             }
-            return null;
+            
             
         }
-        public void discard(Player player, int bag){
-            List<Pebble> bagA = PebbleGame.this.getBagA().getWhiteBagPebbles();
-            List<Pebble> bagB = PebbleGame.this.getBagB().getWhiteBagPebbles();
-            List<Pebble> bagC = PebbleGame.this.getBagC().getWhiteBagPebbles();
-            int randomPebble = ThreadLocalRandom.current().nextInt(0, 10 + 1);
-            Pebble discardChoice = player.getPlayerPebbles().get(randomPebble);
-            System.out.println("size of bag: " + player.getPlayerPebbles().size());
-            System.out.println("discarded: " + discardChoice);
-            if(bag == 0){
-                bagA.add(discardChoice);
-                player.getPlayerPebbles().remove(discardChoice);
-            }else if(bag == 1){
-                bagB.add(discardChoice);
-                player.getPlayerPebbles().remove(discardChoice);
-            }else if(bag == 2){
-                bagC.add(discardChoice);
-                player.getPlayerPebbles().remove(discardChoice);
-            }else{
-                System.out.println("Cunt");
-            }
-        }
-
-
-
-        // public void drawAndDiscard(Player player){ //finish this off with fixed if statements
-        //     try {
-        //         List<Integer> bagX = PebbleGame.this.getBagX().getPebbleWeights();
-        //         List<Integer> bagY = PebbleGame.this.getBagY().getPebbleWeights();
-        //         List<Integer> bagZ = PebbleGame.this.getBagZ().getPebbleWeights();
-        //         int combinedSize = bagX.size() + bagY.size() + bagZ.size();
-        //         while (combinedSize>0){
-        //             //if combined size ==0 
-        //             //empty all bags
-        //             //
-        //             /**
-        //             while (player.getScore()!=100){ we could do this loop from inside the run!!
-        //                 if combined size > 0:
-        //                     choose from random bag
-        //                 else:
-        //                     empty bags back into it
-        //             just another thought - i saw online the AtomicInteger variable - is there a way we can make a Pebble object and make it 
-        //             atomic and save us some time??
-        //             or do you think thats more effort?
-        //             does it have to be an onject ?
-        //             can we not just define it as atomic when we read them in
-        //             true they are all integers or floats
-        //             and we can use AtomicInteger and AtomicFloat?
-        //             idk
-        //             i think its a hassle
-        //             the definiton of atomic is just that either the entire process works or none of it does 
-        //             so we just need error checking
-        //             i reckon we split it up into different methods
-        //             player.draw() and player.discard()
-        //             100% make it simpler that way
-        //             agrred
-        //             lets leave these notes here and do the lecture notes now
-        //             kkk
-        //             read them in as integers and convert to atomic integers
-        //             when you draw return the name of the bag
-        //              */
-        //             Random rand = new Random();
-        //             int bagChoice = rand.nextInt(3);
-        //             if(bagChoice == 0 && bagX.size()>0){
-        //                 List<Integer> bagA = PebbleGame.this.getBagA().getWhiteBagPebbles();
-        //                 int randomIndex = rand.nextInt(bagX.size()); 
-        //                 int pebbleChoice = bagX.get(randomIndex); 
-        //                 player.getPlayerPebbles().add(pebbleChoice); 
-        //                 bagX.remove(randomIndex);
-        //                 int randomPlayerIndex = rand.nextInt(player.getPlayerPebbles().size()); 
-        //                 int discardChoice = player.getPlayerPebbles().get(randomPlayerIndex); 
-        //                 bagA.add(discardChoice);
-        //                 player.getPlayerPebbles().remove(randomPlayerIndex);
-        //             } else if(bagChoice == 1 && bagY.size() > 0){
-        //                 List<Integer> bagB = PebbleGame.this.getBagB().getWhiteBagPebbles();
-        //                 int randomIndex = rand.nextInt(bagY.size());
-        //                 int pebbleChoice = bagY.get(randomIndex);
-        //                 player.getPlayerPebbles().add(pebbleChoice);
-        //                 bagY.remove(randomIndex);
-        //                 int randomPlayerIndex = rand.nextInt(player.getPlayerPebbles().size());
-        //                 int discardChoice = player.getPlayerPebbles().get(randomPlayerIndex);
-        //                 bagB.add(discardChoice);
-        //                 player.getPlayerPebbles().remove(randomPlayerIndex);
-        //             } else if(bagChoice == 2 && bagZ.size() > 0){
-        //                 List<Integer> bagC = PebbleGame.this.getBagC().getWhiteBagPebbles();
-        //                 int randomIndex = rand.nextInt(bagZ.size());
-        //                 int pebbleChoice = bagZ.get(randomIndex);
-        //                 player.getPlayerPebbles().add(pebbleChoice);
-        //                 bagZ.remove(randomIndex);
-        //                 int randomPlayerIndex = rand.nextInt(player.getPlayerPebbles().size());
-        //                 int discardChoice = player.getPlayerPebbles().get(randomPlayerIndex);
-        //                 bagC.add(discardChoice);
-        //                 player.getPlayerPebbles().remove(randomPlayerIndex);
-        //             }
-        //         }
-        //     } catch (Exception e){
-        //         System.out.println(e);
-        //     }
-        // }
+    
     }
+    
     public static void main(String[] args) throws Exception {
         Bags bag = new Bags();
         PebbleGame pebbleGame = new PebbleGame();
@@ -338,16 +284,16 @@ public class PebbleGame{
         Scanner fileChoice = new Scanner(System.in);
         System.out.println("Location of bag X");
         String fileChoiceStringX = fileChoice.nextLine();
-        Bags.BlackBag blackBagX = bag.new BlackBag(fileChoiceStringX,noOfPlayersInt);
+        Bag.BlackBag blackBagX = bag.new BlackBag(fileChoiceStringX,noOfPlayersInt);
         System.out.println("Location of bag Y");
         String fileChoiceStringY = fileChoice.nextLine();
-        Bags.BlackBag blackBagY = bag.new BlackBag(fileChoiceStringY,noOfPlayersInt);
+        Bag.BlackBag blackBagY = bag.new BlackBag(fileChoiceStringY,noOfPlayersInt);
         System.out.println("Location of bag Z");
         String fileChoiceStringZ = fileChoice.nextLine();
-        Bags.BlackBag blackBagZ = bag.new BlackBag(fileChoiceStringZ,noOfPlayersInt);
-        Bags.WhiteBag whiteBagA = bag.new WhiteBag();
-        Bags.WhiteBag whiteBagB = bag.new WhiteBag();
-        Bags.WhiteBag whiteBagC = bag.new WhiteBag();
+        Bag.BlackBag blackBagZ = bag.new BlackBag(fileChoiceStringZ,noOfPlayersInt);
+        Bag.WhiteBag whiteBagA = bag.new WhiteBag();
+        Bag.WhiteBag whiteBagB = bag.new WhiteBag();
+        Bag.WhiteBag whiteBagC = bag.new WhiteBag();
         pebbleGame.setBagX(blackBagX);
         pebbleGame.setBagY(blackBagY);
         pebbleGame.setBagZ(blackBagZ);
@@ -363,8 +309,7 @@ public class PebbleGame{
   
     }
 }
-//using threads choose random numbers from the array list(first choice is 10 pebbles)
-//log details to output file
-//if statement to decide which bad to take and add too 
-//function to add and remove in bag (ATOMIC ACTION)
-//threading player
+
+
+
+

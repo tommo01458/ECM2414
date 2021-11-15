@@ -15,9 +15,6 @@ public class Pebble {
     public void setBlackBag(){
         this.blackBag = blackBag;
     }
-    public void setWhiteBag(){
-        this.whiteBag = whiteBag;
-    }
     public int getValue(){
         return value;
     }
@@ -28,6 +25,6 @@ public class Pebble {
         return whiteBag;
     }
     public String toString(){
-        return "Value: "+ this.getValue();// + " Bag:" + this.getBlackBag();
+        return "Value: "+ this.getValue() + " Bag: " + this.getBlackBag() + this.getWhiteBag();
     }
 }
