@@ -87,7 +87,7 @@ public class Bag {
      * @return string of the bag name and size
      */
     public String toString(){
-        return "The size of bag" + this.getBagName() + "is: " + this.getPebbleWeights().size();
+        return "The bag name is " + this.getBagName() + " and has size: " + this.getPebbleWeights().size();
     }
 }
     

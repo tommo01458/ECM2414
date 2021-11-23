@@ -71,7 +71,7 @@ public class PebbleGame{
      * @return the number of players in the game
      */
     public int getNoOfPlayers(){
-        return this.allPlayers.size();
+        return this.noOfPlayers;
     }
     /**
      * Method to get the players
@@ -148,6 +148,7 @@ public class PebbleGame{
             this.playerScore = score;
             return this.playerScore;
         }
+        
         /**
          * Method to write information to player output file
          * @param filename filename to write to
