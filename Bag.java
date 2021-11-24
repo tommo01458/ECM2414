@@ -22,22 +22,22 @@ public class Bag {
      * @throws IOException
      */
     public Bag(String name, String fileChoiceString, int noOfPlayersInt)throws IOException{
-        if(fileChoiceString .contains("E") && fileChoiceString.length()==1){
+        if(fileChoiceString .contains("E") && fileChoiceString.length()==1){ //Checking for valid input or end game request
             System.out.println("You exited the game.");
             System.exit(0);
         }
             List <String> firstWeights = new ArrayList<>();
             this.bagName = name;
-            try(BufferedReader br = new BufferedReader(new FileReader("C:/Users/tommo/Desktop/Softare Development/"+ fileChoiceString))){
+            try(BufferedReader br = new BufferedReader(new FileReader(fileChoiceString))){ //Reading in the file path
                 String line;
                 
                 int lines = 0;
-                while ((line = br.readLine()) != null) {
-                    line = line.replaceAll("\\s+","");
-                    firstWeights.addAll(Arrays.asList(line.split(",")));
+                while ((line = br.readLine()) != null) { //Check the line
+                    line = line.replaceAll("\\s+",""); //Replace the black space with nothing left
+                    firstWeights.addAll(Arrays.asList(line.split(","))); //Split at the commas
                     lines++;
                 }
-                if (lines > 1){
+                if (lines > 1){ //Handling exceptions
                     throw new IllegalArgumentException("The file must have only one line of comma separated weights. Please use another file.");
                 }
                 if (firstWeights.size() < 11*noOfPlayersInt){
@@ -48,7 +48,7 @@ public class Bag {
                     int newNum = Integer.parseInt(i);
                     if (newNum > 0){
                         if (name.contains("X")){
-                            Pebble pebble = new Pebble(newNum, "X", "A");
+                            Pebble pebble = new Pebble(newNum, "X", "A"); //Constructing the pebbles with the correct black and white bags
                             pebbleWeights.add(pebble);
                         }else if(name.contains("Y")){
                             Pebble pebble = new Pebble(newNum, "Y", "B");
@@ -57,7 +57,7 @@ public class Bag {
                             Pebble pebble = new Pebble(newNum, "Z", "C");
                             pebbleWeights.add(pebble);
                         } 
-                    } else {
+                    } else { //Handling exceptions
                         throw new IllegalArgumentException("All Pebbles must be strictly positive. Please restart the program and use another bag.");
                     }
                     

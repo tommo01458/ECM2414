@@ -14,6 +14,6 @@ public class testPebble{
     @Test
     public void testToString()throws IOException{
         Pebble pebble = new Pebble(69, "X", "A");
-        assertEquals("Value: 69 Bag: XA", pebble.toString());
+        assertEquals("69", pebble.toString());
     }
 }

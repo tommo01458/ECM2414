@@ -44,6 +44,6 @@ public class Pebble {
      * @return string information of the pebble
      */
     public String toString(){
-        return "Value: "+ this.getValue() + " Bag: " + this.getBlackBag() + this.getWhiteBag();
+        return ""+ this.getValue();
     }
 }

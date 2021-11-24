@@ -19,8 +19,8 @@ import java.util.concurrent.*;
  */
 public class PebbleGame{
     private ArrayList<Player> allPlayers = new ArrayList<>();
-    private Bag[] blackBags = new Bag[3];
-    private Bag[] whiteBags = new Bag[3];
+    public Bag[] blackBags = new Bag[3];
+    public Bag[] whiteBags = new Bag[3];
     private int noOfPlayers;
     private boolean hasWon = false;
     
@@ -242,7 +242,6 @@ public class PebbleGame{
     public static void main(String[] args) throws Exception{
         while(true){
             try{
-                String[] locations = new String[3];
                 System.out.println("Welcome to pebble game!");
                 System.out.println("You will be asked to enter the number of players");
                 System.out.println("And then for the location of 3 files in turn containing comma seperated integer values for the pebble weights.");
@@ -260,27 +259,24 @@ public class PebbleGame{
                     throw new IllegalArgumentException("There must be a positive number of players.");
                 }
                 Scanner pathChoice = new Scanner(System.in);
+                System.out.println("Enter file path for the folder containing the bags in the format C:/***/***/***.../.. Please leave the final forward slash in.");
                 String pathChoiceString = pathChoice.nextLine();
-                System.out.println("Enter file path for the folder containing the bags in the format C:/***/***/***...");
                 Scanner fileChoice = new Scanner(System.in);
                 System.out.println("Location of bag X");
                 String fileChoiceStringX = fileChoice.nextLine(); //location of bag X
-                locations[0] = fileChoiceStringX;
-                Bag blackBagX = new Bag("X", fileChoiceStringX,noOfPlayersInt);
+                Bag blackBagX = new Bag("X", pathChoiceString+fileChoiceStringX,noOfPlayersInt);
                 System.out.println("Location of bag Y");
                 String fileChoiceStringY = fileChoice.nextLine(); //location of bag Y
-                locations[1] = fileChoiceStringY;
-                Bag blackBagY = new Bag("Y",fileChoiceStringY,noOfPlayersInt);
+                Bag blackBagY = new Bag("Y",pathChoiceString+fileChoiceStringY,noOfPlayersInt);
                 System.out.println("Location of bag Z");
                 String fileChoiceStringZ = fileChoice.nextLine(); //location of bag Z
-                locations[2] = fileChoiceStringZ;
-                Bag blackBagZ = new Bag("Z",fileChoiceStringZ,noOfPlayersInt);
+                Bag blackBagZ = new Bag("Z",pathChoiceString+fileChoiceStringZ,noOfPlayersInt);
                 //creation of white bags
-                Bag whiteBagA = new Bag("A"); 
+                Bag whiteBagA = new Bag("A"); //Defining the white bags
                 Bag whiteBagB = new Bag("B");
                 Bag whiteBagC = new Bag("C");
                 PebbleGame pebbleGame = new PebbleGame(noOfPlayersInt);
-                pebbleGame.blackBags[0] = blackBagX;
+                pebbleGame.blackBags[0] = blackBagX; //Defining the bags in the list
                 pebbleGame.blackBags[1] = blackBagY;
                 pebbleGame.blackBags[2] = blackBagZ;
                 pebbleGame.whiteBags[0] = whiteBagA;
@@ -293,13 +289,10 @@ public class PebbleGame{
                 for (PebbleGame.Player player: pebbleGame.getPlayers()){
                     Thread thread = new Thread(player); //creating the player threads
                     thread.start(); //starting the threads
-                    if (fileChoice.nextLine()=="E"){
-                        System.out.println("You have cancelled the game");
-                        System.exit(0);
-                    }
                 }
-                fileChoice.close();
+                fileChoice.close(); //Closing the file scanner
                 noOfPlayers.close();
+                pathChoice.close();
                 break;
             }catch (Exception e){
                 e.printStackTrace();

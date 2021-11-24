@@ -17,13 +17,13 @@ public class testBag{
     public void testBlackBag() throws IOException{
         String name = "X";
         int numberOfPlayers = 5;
-        Bag blackBag = new Bag(name, "example_file_2.csv", numberOfPlayers);
+        Bag blackBag = new Bag(name, "C:/Users/tommo/Desktop/Softare Development/example_file_2.csv", numberOfPlayers);
         assertEquals(100, blackBag.getPebbleWeights().size());
         assertEquals(name, blackBag.getBagName());
     }
     @Test
     public void testToString()throws IOException{
-        Bag blackBag = new Bag("X", "example_file_2.csv", 5);
+        Bag blackBag = new Bag("X", "C:/Users/tommo/Desktop/Softare Development/example_file_2.csv", 5);
         assertEquals("The bag name is X and has size: 100", blackBag.toString());
     }
 
