@@ -180,13 +180,6 @@ public class PebbleGame{
             return this.playerPebbles;
         }
         /**
-         * Method to print out the player
-         * @return players toString
-         */
-        public String toString(){
-            return "Score: " + this.getScore();
-        }
-        /**
          * Method to choose and discard pebbles from the players hand and bags
         First it checks whether the player has a full hand to start. If it doesn't then the loop is executed ten times until
         the hand is full.
@@ -266,6 +259,9 @@ public class PebbleGame{
                 if(noOfPlayersInt < 1){
                     throw new IllegalArgumentException("There must be a positive number of players.");
                 }
+                Scanner pathChoice = new Scanner(System.in);
+                String pathChoiceString = pathChoice.nextLine();
+                System.out.println("Enter file path for the folder containing the bags in the format C:/***/***/***...");
                 Scanner fileChoice = new Scanner(System.in);
                 System.out.println("Location of bag X");
                 String fileChoiceStringX = fileChoice.nextLine(); //location of bag X

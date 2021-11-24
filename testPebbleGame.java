@@ -1,4 +1,7 @@
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+
 import org.junit.Test;
 public class testPebbleGame {
     
@@ -70,11 +73,6 @@ public class testPebbleGame {
     public void testPlayerToFile(){
 
     }
-    @Test
-    public void testToString(){
-        
-    }
-
     @Test
     public void testPebbleChoice(){
         int numberOfPlayers = 5;
